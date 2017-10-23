@@ -1,6 +1,6 @@
 {
   "name": "@uber5001/create-element",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "shorthand for document.createElement and related functions",
   "main": "dist/index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/uber5001/create-element#readme",
   "dependencies": {
-    "@uber5001/create-fragment": "0.0.1",
-    "@uber5001/deep-assign": "0.0.1",
-    "@uber5001/partial-application-proxy": "0.0.1"
+    "@uber5001/create-fragment": "0.0.2",
+    "@uber5001/deep-assign": "0.0.2",
+    "@uber5001/partial-application-proxy": "0.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
