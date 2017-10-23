@@ -1,10 +1,11 @@
 {
   "name": "@uber5001/create-element",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "shorthand for document.createElement and related functions",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src --presets babel-preset-es2015 --out-dir dist",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,8 @@
     "@uber5001/deep-assign": "0.0.1",
     "@uber5001/partial-application-proxy": "0.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
 }
