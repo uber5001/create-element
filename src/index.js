@@ -7,81 +7,70 @@ function _e(el, ...args) {
   } else {
     el.innerHTML = "";
   }
-  for (const arg of args) {
-    if (!arg) continue;
-    if (arg instanceof Array) {
-      el.appendChild(_f(arg.filter(x=>x)));
-    } else if (arg instanceof Node) {
-      el.appendChild(arg);
-    } else if (typeof arg == "string") {
-      el.classList.add(arg);
-    } else if (arg.subscribe instanceof Function) { //arg instanceof Observable
-      const insertLocation = document.createComment("@uber5001/create-element insertLocation")
-      el.appendChild(insertLocation);
-      arg
-        .startWith(undefined)
-        .pairwise()
-        .subscribe(([prev, curr]) => {
-          if (prev) {
-            if (prev instanceof Array) {
-              for (const child of prev) {
-                if (child) {
-                  el.removeChild(child);
-                }
-              }
-            } else if (prev instanceof Node) {
-              el.removeChild(prev)
-            } else if (typeof prev == "string") {
-              el.classList.remove(prev);
-            } else {
-              //uhh, ignore this one, I guess?
-              //not sure if unassigning properties is useful.
-            }
-          }
 
-          if (curr) {
-            if (curr instanceof Array) {
-              el.insertBefore(_f(curr.filter(x=>x)), insertLocation)
-            } else if (curr instanceof Node) {
-              el.insertBefore(curr, insertLocation)
-            } else if (typeof curr == "string") {
-              el.classList.add(curr);
-            } else {
-              deepAssign(el, arg)
-            }
-          }
-        })
-    } else if (arg instanceof Promise) {
-      const placeholder = document.createComment("@uber5001/create-element placeholder")
-      el.appendChild(placeholder);
-      arg.then(val => {
-        if (val) {
-          if (val instanceof Array) {
-            el.replaceChild(_f(val.filter(x=>x)), placeholder);
-          } else if (val instanceof HTMLElement) {
-            el.replaceChild(val, placeholder);
-          } else if (typeof val == "string") {
-            el.removeChild(placeholder);
-            el.classList.add(val);
-          } else {
-            el.removeChild(placeholder);
-            deepAssign(el, arg)
-          }
-        }
-      })
-    } else {
-      for (const key of Object.keys(arg)) {
-        if (arg[key] && arg[key].subscribe instanceof Function) {
-          const obs = arg[key];
-          delete arg[key];
-          obs.subscribe(val => {
-            el[key] = val;
+  function _c(txt = "") {return document.createComment(`@uber5001/create-element ${txt}`)}
+  function processArray(arr, referenceNode = null) {
+    if (!(arr instanceof Array)) arr = [arr];
+    const undoList = [];
+    function undo() {undoList.forEach(item => item())}
+    function insert(newEl) {el.insertBefore(newEl, referenceNode); return newEl;}
+    for (const item of arr) {
+      if (item === undefined) continue;
+      if (item instanceof Array) {
+        const comment = insert(_c("array"));
+        undoList.push(processArray(item, comment));
+        undoList.push(() => el.removeChild(comment));
+      } else if (item instanceof Node) {
+        insert(item);
+        undoList.push(() => el.removeChild(item));
+      } else if (typeof item == "string") {
+        el.classList.add(item);
+        undoList.push(() => el.classList.remove(item))
+      } else if (item.subscribe instanceof Function) {
+        const comment = insert(_c("observable"));
+        let undo = _=>_;
+        const subscription = item
+          .subscribe(val => {
+            undo();
+            undo = processArray(val, comment)
           })
+        undoList.push(() => {
+          subscription.unsubscribe();
+          undo();
+        })
+        undoList.push(() => el.removeChild(comment));
+      } else if (item instanceof Promise) {
+        const comment = insert(_c("promise"));
+        let undo = _=>_;
+        let cancelled = false;
+        item.then(val => {
+          if (!cancelled) undo = processArray(val, comment);
+        })
+        undoList.push(() => {
+          undo();
+          cancelled = true;
+        })
+        undoList.push(() => el.removeChild(comment));
+      } else {
+        for (const key of Object.keys(item)) {
+          if (item[key] && item[key].subscribe instanceof Function) {
+            const obs = item[key];
+            delete item[key];
+            obs.subscribe(val => {
+              el[key] = val;
+            })
+          }
         }
+        deepAssign(el, item)
+        //TODO: prop assignment precedence (currently 'most recent')
+        //TODO: deep subscribe
+        //TODO: unsubscribe / deep unsubscribe
+        //TODO: undo
       }
-      deepAssign(el, arg)
     }
+    return undo;
   }
+  processArray(args);
   return el;
 }
 

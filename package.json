@@ -1,6 +1,6 @@
 {
   "name": "@uber5001/create-element",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "shorthand for document.createElement and related functions",
   "main": "dist/index.js",
   "scripts": {
