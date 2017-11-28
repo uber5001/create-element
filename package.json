@@ -19,7 +19,7 @@
   "homepage": "https://github.com/uber5001/create-element#readme",
   "dependencies": {
     "@uber5001/create-fragment": "0.0.2",
-    "@uber5001/deep-assign": "0.0.2",
+    "@uber5001/deep-assign": "0.0.4",
     "@uber5001/partial-application-proxy": "0.0.2"
   },
   "devDependencies": {
